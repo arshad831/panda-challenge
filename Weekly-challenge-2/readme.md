@@ -25,7 +25,7 @@ Follow these steps to submit your solution for the Digital Marketing Optimizatio
 - Open your terminal or command prompt, navigate to the directory where you want to clone the repository, and run:
 
 
-git clone <URL_you_copied>
+''' git clone <URL_you_copied> '''
 
 Replace `<URL_you_copied>` with the URL you copied from your fork.
 
@@ -78,4 +78,4 @@ git push origin <branch_name>
 ## Review and Feedback
 
 - The challenge organizers will review pull requests, provide feedback, and merge solutions into the main repository as appropriate.
-- Participants are encouraged to review others' solutions, provide constructive feedback, and le
+- Participants are encouraged to review others' solutions, provide constructive feedback, and learn from different approaches to the challenge.
