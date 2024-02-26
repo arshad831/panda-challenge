@@ -4,6 +4,7 @@ Put your working code in comment . Please don't use google , chatgpt and see oth
 
 fork this repository and try giving the solution
 
+winner will get 1 month premium access to community and ebook from PAckt
 
 ![image](https://github.com/arshad831/panda-challenge/assets/70535034/fb6ff529-3708-4cdf-bf22-68153067d508)
 
