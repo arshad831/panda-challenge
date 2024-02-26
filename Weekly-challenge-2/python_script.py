@@ -1,98 +1,116 @@
+#Code Written By - Jishnu Setia
+#Date - 26th Feb, 2024
+#Purpose - Develop a Python script that analyzes data from digital marketing campaigns to optimize the allocation of budget across various channels to maximize ROI (Return on Investment). 
+    #The script should take into account the performance metrics of each channel (e.g., click-through rate, conversion rate, and cost per acquisition) and the constraints on the total budget. 
+    #Additionally, generate visualizations to display the performance metrics of each channel and the proposed budget allocations. Share your GitHub solution in the comments to participate.
+    #The dataset marketing_data_sample_corrected.csv can be found here  https://nas.io/artificialintelligence/tbon
+    #The winner will get a month's AI guild membership and a Generative AI ebook 
+
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.optimize import minimize
 
-# Part 1: Data Loading
-def load_data(filepath):
-    """
-    Load marketing campaign data from a CSV file.
-    
-    Parameters:
-    - filepath: str, path to the CSV file
-    
-    Returns:
-    - DataFrame containing the campaign data
-    """
-    return pd.read_csv(filepath)
+try:
+    data = pd.read_csv("marketing_data_sample_corrected.csv")#gets  the csv file and stores it in a variable called data
 
-# Part 2: Data Analysis
-def calculate_performance_metrics(data):
-    """
-    Calculate performance metrics for each marketing channel.
-    
-    Parameters:
-    - data: DataFrame, marketing campaign data
-    
-    Returns:
-    - DataFrame with additional columns for CTR, CR, and CPA
-    """
-    data['CTR'] = (data['Clicks'] / data['Impressions']) * 100
-    data['CR'] = (data['Conversions'] / data['Clicks']) * 100
-    data['CPA'] = data['Total Cost'] / data['Conversions']
-    return data
+    channel_data = {}
+    # Read data and store in channel_data
+    for index, row in data.iterrows():
+        channel_name = row["Channel Name"]
+        impressions = row["Impressions"]
+        clicks = row["Clicks"]
+        conversions = row["Conversions"]
+        total_cost = row["Total Cost"]
 
-# Part 3: Optimization
-def optimize_budget(data, total_budget):
-    """
-    Optimize the allocation of budget across marketing channels.
-    
-    Parameters:
-    - data: DataFrame, marketing campaign data with performance metrics
-    - total_budget: float, total budget available for allocation
-    
-    Returns:
-    - Series with the optimized budget allocation for each channel
-    """
-    # Optimization logic here
-    # Placeholder for optimization code
-    return pd.Series()  # Return optimized budget series
+        if channel_name not in channel_data:
+            channel_data[channel_name] = {
+                "impressions": [],
+                "clicks": [],
+                "conversions": [],
+                "total_cost": 0
+            }
 
-# Part 4: Visualization
-def visualize_performance(data):
-    """
-    Create visualizations for the performance metrics of marketing channels.
-    
-    Parameters:
-    - data: DataFrame, marketing campaign data with performance metrics
-    """
-    # Visualize CTR, CR, and CPA for each channel
-    # Example: Bar plot for CTR
-    sns.barplot(x='Channel Name', y='CTR', data=data)
+        channel_data[channel_name]["impressions"].append(impressions)
+        channel_data[channel_name]["clicks"].append(clicks)
+        channel_data[channel_name]["conversions"].append(conversions)
+        channel_data[channel_name]["total_cost"] += total_cost
+
+    channels = sorted(channel_data.keys())
+    impressions_mean = [
+        sum(channel_data[channel]["impressions"]) / len(channel_data[channel]["impressions"])
+        for channel in channels
+    ]
+    clicks_mean = [
+        sum(channel_data[channel]["clicks"]) / len(channel_data[channel]["clicks"])
+        for channel in channels
+    ]
+    conversions_mean = [
+        sum(channel_data[channel]["conversions"]) / len(channel_data[channel]["conversions"])
+        for channel in channels
+    ]
+    total_cost_sum = [channel_data[channel]["total_cost"] for channel in channels]
+
+    ctr = [#click through rate
+        0 if impressions == 0 else (clicks / impressions) * 100
+        for clicks, impressions in zip(clicks_mean, impressions_mean)
+    ]
+    conversion_rate = [
+        0 if clicks == 0 else (conversions / clicks) * 100 for conversions, clicks in zip(conversions_mean, clicks_mean)
+    ]
+
+    cpa = [total_cost / conversions if conversions != 0 else 0 for total_cost, conversions in zip(total_cost_sum, conversions_mean)]#cost per acquisition
+
+    metric_combined = [(ctr_i * conversion_rate_i) / (cpa_i + 1) for ctr_i, conversion_rate_i, cpa_i in zip(ctr, conversion_rate, cpa)]
+
+    channels_to_increase_budget = [channel for channel, metric in zip(channels, metric_combined) if metric < max(metric_combined)]
+
+    #Plotting the graphs
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(16, 6))
+
+    ax1.bar(channels, impressions_mean, label="Impressions", color="blue")
+    ax1.bar(channels, clicks_mean, label="Clicks", color="green")
+    ax1.bar(channels, conversions_mean, label="Conversions", color="red")
+    ax1.set_title("Average Impressions, Clicks, and Conversions")
+    ax1.set_xlabel("Channel Name")
+    ax1.set_ylabel("Average Value")
+    ax1.legend()
+    ax1.tick_params(axis='x', rotation=45)
+
+    ax2.bar(channels, total_cost_sum, label="Total Cost", color="goldenrod")
+    ax2.set_title("Total Cost per Channel")
+    ax2.set_xlabel("Channel Name")
+    ax2.set_ylabel("Total Cost")
+    ax2.legend()
+    ax2.tick_params(axis='x', rotation=45)
+
+    ax3.bar(channels, ctr, label="CTR", color="purple")
+    ax3.set_title("Click-Through Rate (CTR)")
+    ax3.set_xlabel("Channel Name")
+    ax3.set_ylabel("Percentage (%)")
+    ax3.legend()
+    ax3.tick_params(axis='x', rotation=45)
+
+    ax4.bar(channels, conversion_rate, label="Conversion Rate", color="orange")
+    ax4.set_title("Conversion Rate")
+    ax4.set_xlabel("Channel Name")
+    ax4.set_ylabel("Percentage (%)")
+    ax4.legend()
+    ax4.tick_params(axis='x', rotation=45)
+
+    plt.tight_layout()
     plt.show()
-    # Additional visualizations can be added similarly
 
-def visualize_budget_allocation(optimized_budget):
-    """
-    Visualize the budget allocation across marketing channels.
-    
-    Parameters:
-    - optimized_budget: Series, optimized budget allocation for each channel
-    """
-    # Pie chart for budget allocation
-    optimized_budget.plot.pie(autopct='%1.1f%%')
+    fig, (ax5) = plt.subplots(1, 1, figsize=(16, 6))
+    ax5.bar(channels, metric_combined, color="skyblue")
+    ax5.set_title("Combined Metric for Budget Allocation Optimization")
+    ax5.set_xlabel("Channel Name")
+    ax5.set_ylabel("Combined Metric")
+    ax5.set_xticks(range(len(channels)))
+    ax5.set_xticklabels(channels, rotation=45, ha='right')
+    ax5.tick_params(axis='x', labelsize=8)
+
+    for channel in channels_to_increase_budget:
+        ax5.text(channels.index(channel), metric_combined[channels.index(channel)], "Increase Budget", ha='center', va='bottom', color='red')
     plt.show()
 
-# Main function to run the script
-def main():
-    filepath = 'path_to_your_data.csv'  # Update this path
-    total_budget = 10000  # Example total budget
-    
-    # Load data
-    data = load_data(filepath)
-    
-    # Calculate performance metrics
-    data_with_metrics = calculate_performance_metrics(data)
-    
-    # Optimize budget allocation
-    optimized_budget = optimize_budget(data_with_metrics, total_budget)
-    
-    # Visualize performance metrics
-    visualize_performance(data_with_metrics)
-    
-    # Visualize optimized budget allocation
-    visualize_budget_allocation(optimized_budget)
-
-if __name__ == "__main__":
-    main()
+except FileNotFoundError:
+    print("Error: File not found!")
